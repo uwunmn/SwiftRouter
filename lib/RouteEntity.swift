@@ -8,43 +8,39 @@
 
 import Foundation
 
-public final class RouteEntity {
+public class RouteEntity {
     
-    public let data: [String: AnyObject]
-    public var url: NSURL?
+    public let data: [String: Any]
+    public var url: URL?
     
     public var scheme: String {
-        if let url = self.url, scheme = url.scheme {
+        if let url = self.url, let scheme = url.scheme {
             return  scheme
         }
         return ""
     }
     
     public var host: String {
-        if let url = self.url, host = url.host {
+        if let url = self.url, let host = url.host {
             return host
         }
         return ""
     }
     
     public var path: String {
-        if let url = self.url, path = url.path where !path.isEmpty {
-            return path
+        if let url = self.url, !url.path.isEmpty {
+            return url.path
         }
         return "/"
     }
     
-    convenience public init(urlString: String, data: [String: AnyObject]? = nil) {
+    convenience public init(urlString: String, data: [String: Any]? = nil) {
         self.init(url: urlString.URLValue, data: data)
     }
     
-    convenience public init(scheme: String, host: String, path: String, data: [String: AnyObject]? = nil) {
-        self.init(url: NSURL(scheme: scheme, host: host, path: path), data: data)
-    }
-    
-    public init(url: NSURL?, data: [String: AnyObject]? = nil) {
-        var newData = data ?? [String: AnyObject]()
-        if let url = url, queryMap: [String: String] = url.queryParameters {
+    public init(url: URL?, data: [String: Any]? = nil) {
+        var newData = data ?? [String: Any]()
+        if let queryMap = url?.queryParameters  {
             for (key, value) in queryMap {
                 newData[key] = value
             }
@@ -62,47 +58,43 @@ public final class RouteEntity {
 }
 
 public protocol URLConvertible {
-    var URLValue: NSURL? { get }
+    var URLValue: URL? { get }
     var URLStringValue: String { get }
-    
     var queryParameters: [String: String] { get }
-    
-    @available(iOS 8, *)
-    var queryItems: [NSURLQueryItem]? { get }
+    var queryItems: [URLQueryItem]? { get }
 }
 
 extension URLConvertible {
     public var queryParameters: [String: String] {
         var parameters = [String: String]()
-        self.URLValue?.query?.componentsSeparatedByString("&").forEach {
-            let keyAndValue = $0.componentsSeparatedByString("=")
+        self.URLValue?.query?.components(separatedBy: "&").forEach {
+            let keyAndValue = $0.components(separatedBy: "=")
             if keyAndValue.count == 2 {
                 let key = keyAndValue[0]
-                let value = keyAndValue[1].stringByReplacingOccurrencesOfString("+", withString: " ")
-                    .stringByRemovingPercentEncoding ?? keyAndValue[1]
+                let value = keyAndValue[1].replacingOccurrences(of: "+", with: " ").removingPercentEncoding ?? keyAndValue[1]
                 parameters[key] = value
             }
         }
         return parameters
     }
     
-    @available(iOS 8, *)
-    public var queryItems: [NSURLQueryItem]? {
-        return NSURLComponents(string: self.URLStringValue)?.queryItems
+    public var queryItems: [URLQueryItem]? {
+        return URLComponents(string: self.URLStringValue)?.queryItems
     }
 }
 
 extension String: URLConvertible {
-    public var URLValue: NSURL? {
-        if let URL = NSURL(string: self) {
+    public var URLValue: URL? {
+        if let URL = URL(string: self) {
             return URL
         }
-        let set = NSMutableCharacterSet()
-        set.formUnionWithCharacterSet(.URLHostAllowedCharacterSet())
-        set.formUnionWithCharacterSet(.URLPathAllowedCharacterSet())
-        set.formUnionWithCharacterSet(.URLQueryAllowedCharacterSet())
-        set.formUnionWithCharacterSet(.URLFragmentAllowedCharacterSet())
-        return self.stringByAddingPercentEncodingWithAllowedCharacters(set).flatMap { NSURL(string: $0) }
+        let set = CharacterSet()
+            .union(.urlHostAllowed)
+            .union(.urlPathAllowed)
+            .union(.urlQueryAllowed)
+            .union(.urlFragmentAllowed)
+        
+        return self.addingPercentEncoding(withAllowedCharacters: set).flatMap { URL(string: $0) }
     }
     
     public var URLStringValue: String {
@@ -110,12 +102,12 @@ extension String: URLConvertible {
     }
 }
 
-extension NSURL: URLConvertible {
-    public var URLValue: NSURL? {
+extension URL: URLConvertible {
+    public var URLValue: URL? {
         return self
     }
     
     public var URLStringValue: String {
-        return self.absoluteString ?? ""
+        return self.absoluteString
     }
 }

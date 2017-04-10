@@ -11,5 +11,5 @@ import Foundation
 public protocol Routable: class {
     init()
     
-    func handleRouteEntity(routeEnity: RouteEntity)
+    func handleRouteEntity(routeEntity: RouteEntity)
 }
