@@ -36,7 +36,7 @@ public class Router: Equatable {
         return self.handle(entity: RouteEntity(urlString: urlString, data: data))
     }
     
-    public func handle(url: URL, data: [String: AnyObject]? = nil) -> Routable? {
+    public func handle(url: URL, data: [String: Any]? = nil) -> Routable? {
         return self.handle(entity: RouteEntity(url: url, data: data))
     }
     

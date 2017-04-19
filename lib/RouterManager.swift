@@ -36,11 +36,11 @@ public class RouterManager {
         }
     }
     
-    public func handle(string urlString: String, data: [String: AnyObject]? = nil, mustMatchKeyPoint: Bool = false) -> Routable? {
+    public func handle(string urlString: String, data: [String: Any]? = nil, mustMatchKeyPoint: Bool = false) -> Routable? {
         return self.handle(entity: RouteEntity(urlString: urlString, data: data), mustMatchKeyPoint: mustMatchKeyPoint)
     }
     
-    public func handle(url: URL, data: [String: AnyObject]? = nil, mustMatchKeyPoint: Bool = false) -> Routable? {
+    public func handle(url: URL, data: [String: Any]? = nil, mustMatchKeyPoint: Bool = false) -> Routable? {
         return self.handle(entity: RouteEntity(url: url, data: data), mustMatchKeyPoint: mustMatchKeyPoint)
     }
     
