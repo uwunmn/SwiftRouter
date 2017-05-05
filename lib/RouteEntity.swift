@@ -67,13 +67,8 @@ public protocol URLConvertible {
 extension URLConvertible {
     public var queryParameters: [String: String] {
         var parameters = [String: String]()
-        self.URLValue?.query?.components(separatedBy: "&").forEach {
-            let keyAndValue = $0.components(separatedBy: "=")
-            if keyAndValue.count == 2 {
-                let key = keyAndValue[0]
-                let value = keyAndValue[1].replacingOccurrences(of: "+", with: " ").removingPercentEncoding ?? keyAndValue[1]
-                parameters[key] = value
-            }
+        URLComponents(string: self.URLStringValue)?.queryItems?.forEach {
+            parameters[$0.name] = $0.value
         }
         return parameters
     }
