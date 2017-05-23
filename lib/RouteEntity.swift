@@ -15,7 +15,7 @@ public class RouteEntity {
     
     public var scheme: String {
         if let url = self.url, let scheme = url.scheme {
-            return  scheme
+            return scheme
         }
         return ""
     }
@@ -34,6 +34,13 @@ public class RouteEntity {
         return "/"
     }
     
+    public var isValid: Bool {
+        return self.url != nil
+            && !self.scheme.isEmpty
+            && !self.host.isEmpty
+            && !self.path.isEmpty
+    }
+    
     convenience public init(urlString: String, data: [String: Any]? = nil) {
         self.init(url: urlString.URLValue, data: data)
     }
@@ -48,23 +55,16 @@ public class RouteEntity {
         self.url = url
         self.data = newData
     }
-    
-    public func isValid() -> Bool {
-        return self.url != nil
-            && !self.scheme.isEmpty
-            && !self.host.isEmpty
-            && !self.path.isEmpty
-    }
 }
 
-public protocol URLConvertible {
+protocol URLConvertibleProtocol {
     var URLValue: URL? { get }
     var URLStringValue: String { get }
     var queryParameters: [String: String] { get }
     var queryItems: [URLQueryItem]? { get }
 }
 
-extension URLConvertible {
+extension URLConvertibleProtocol {
     public var queryParameters: [String: String] {
         var parameters = [String: String]()
         URLComponents(string: self.URLStringValue)?.queryItems?.forEach {
@@ -78,7 +78,7 @@ extension URLConvertible {
     }
 }
 
-extension String: URLConvertible {
+extension String: URLConvertibleProtocol {
     public var URLValue: URL? {
         if let URL = URL(string: self) {
             return URL
@@ -97,7 +97,7 @@ extension String: URLConvertible {
     }
 }
 
-extension URL: URLConvertible {
+extension URL: URLConvertibleProtocol {
     public var URLValue: URL? {
         return self
     }
