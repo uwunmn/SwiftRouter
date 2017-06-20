@@ -57,7 +57,7 @@ public class RouteEntity {
     }
 }
 
-protocol URLConvertibleProtocol {
+public protocol URLConvertibleProtocol {
     var URLValue: URL? { get }
     var URLStringValue: String { get }
     var queryParameters: [String: String] { get }
