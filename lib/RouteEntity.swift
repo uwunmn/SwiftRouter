@@ -8,9 +8,9 @@
 
 import Foundation
 
+
 public class RouteEntity {
-    
-    public let data: [String: Any]
+    public let data:CaseInsensitiveDictionary<String, Any>
     public var url: URL?
     
     public var scheme: String {
@@ -41,19 +41,19 @@ public class RouteEntity {
             && !self.path.isEmpty
     }
     
-    convenience public init(urlString: String, data: [String: Any]? = nil) {
+    convenience public init(urlString: String, data: [String : Any]? = nil) {
         self.init(url: urlString.URLValue, data: data)
     }
     
-    public init(url: URL?, data: [String: Any]? = nil) {
-        var newData = data ?? [String: Any]()
+    public init(url: URL?, data: [String : Any]? = nil) {
+        var newData = data ?? [String : Any]()
         if let queryMap = url?.queryParameters  {
             for (key, value) in queryMap {
                 newData[key] = value
             }
         }
         self.url = url
-        self.data = newData
+        self.data = CaseInsensitiveDictionary<String, Any>.init(dictionary: newData)
     }
 }
 
@@ -106,3 +106,77 @@ extension URL: URLConvertibleProtocol {
         return self.absoluteString
     }
 }
+
+public struct CaseInsensitiveDictionary<Key: Hashable, Value>: Collection,
+    ExpressibleByDictionaryLiteral
+{
+    private var _data: [Key: Value] = [:]
+    private var _keyMap: [String: Key] = [:]
+
+    public typealias Element = (key: Key, value: Value)
+    public typealias Index = DictionaryIndex<Key, Value>
+    public var startIndex: Index {
+        return _data.startIndex
+    }
+    public var endIndex: Index {
+        return _data.endIndex
+    }
+    public func index(after: Index) -> Index {
+        return _data.index(after: after)
+    }
+
+    public var count: Int {
+        assert(_data.count == _keyMap.count, "internal keys out of sync")
+        return _data.count
+    }
+
+    public var isEmpty: Bool {
+        return _data.isEmpty
+    }
+
+    public init(dictionaryLiteral elements: (Key, Value)...) {
+        for (key, value) in elements {
+            _keyMap["\(key)".lowercased()] = key
+            _data[key] = value
+        }
+    }
+
+    public init(dictionary: [Key: Value]) {
+        for (key, value) in dictionary {
+            _keyMap["\(key)".lowercased()] = key
+            _data[key] = value
+        }
+    }
+
+    public subscript (position: Index) -> Element {
+        return _data[position]
+    }
+
+    public subscript (key: Key) -> Value? {
+        get {
+            if let realKey = _keyMap["\(key)".lowercased()] {
+                return _data[realKey]
+            }
+            return nil
+        }
+        set(newValue) {
+            let lowerKey = "\(key)".lowercased()
+            if _keyMap[lowerKey] == nil {
+                _keyMap[lowerKey] = key
+            }
+            _data[_keyMap[lowerKey]!] = newValue
+        }
+    }
+
+    public func makeIterator() -> DictionaryIterator<Key, Value> {
+        return _data.makeIterator()
+    }
+
+    public var keys: LazyMapCollection<[Key : Value], Key> {
+        return _data.keys
+    }
+    public var values: LazyMapCollection<[Key : Value], Value> {
+        return _data.values
+    }
+}
+
