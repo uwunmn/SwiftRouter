@@ -9,7 +9,7 @@
 import Foundation
 
 public class RouteEntity {
-    private let data: [String: Any]
+    public let data: [String: Any]
     public var url: URL?
     
     public var scheme: String {
