@@ -48,7 +48,7 @@ public class RouteEntity {
         var newData = data ?? [String : Any]()
         if let queryMap = url?.queryParameters  {
             for (key, value) in queryMap {
-                newData[key.lowercased()] = value
+                newData[key] = value
             }
         }
         self.url = url
