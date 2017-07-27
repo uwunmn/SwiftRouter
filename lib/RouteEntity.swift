@@ -9,7 +9,7 @@
 import Foundation
 
 public class RouteEntity {
-    public let data: [String: Any]
+    public let data: NSDictionary
     public var url: URL?
     
     public var scheme: String {
@@ -48,11 +48,11 @@ public class RouteEntity {
         var newData = data ?? [String : Any]()
         if let queryMap = url?.queryParameters  {
             for (key, value) in queryMap {
-                newData[key] = value
+                newData[key.lowercaseFirst()] = value
             }
         }
         self.url = url
-        self.data = newData
+        self.data = newData as NSDictionary
     }
 }
 
@@ -103,5 +103,39 @@ extension URL: URLConvertibleProtocol {
     
     public var URLStringValue: String {
         return self.absoluteString
+    }
+}
+
+public protocol LowercaseKeyAccessable {
+    subscript(key: LowercaseFirstAble) -> Any? { get set }
+}
+
+public protocol LowercaseFirstAble{
+    func lowercaseFirst() -> String
+}
+
+extension String: LowercaseFirstAble{
+    var first: String {
+        return String(characters.prefix(1))
+    }
+    var last: String {
+        return String(characters.suffix(1))
+    }
+    public func lowercaseFirst()-> String {
+        return first.lowercased() + String(characters.dropFirst())
+    }
+}
+
+extension NSDictionary:LowercaseKeyAccessable{
+    public subscript(key: LowercaseFirstAble) -> Any? {
+        get {
+            return self.object(forKey:key.lowercaseFirst())
+        }
+        set {
+            if let key = key as? String{
+                self.setValue(newValue, forKey: key)
+            }
+
+        }
     }
 }
