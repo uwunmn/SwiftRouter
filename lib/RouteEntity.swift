@@ -48,11 +48,12 @@ public class RouteEntity {
         var newData = data ?? [String : Any]()
         if let queryMap = url?.queryParameters  {
             for (key, value) in queryMap {
-                newData[key.lowercaseFirst()] = value
+                newData[key.hump()] = value
             }
         }
         self.url = url
         self.data = newData as NSDictionary
+        self.data.humpAccessAble = true
     }
 }
 
@@ -106,36 +107,51 @@ extension URL: URLConvertibleProtocol {
     }
 }
 
-public protocol LowercaseKeyAccessable {
-    subscript(key: LowercaseFirstAble) -> Any? { get set }
+public protocol HumpKeyAccessable {
+    subscript(key: HumpAble) -> Any? { get set }
 }
 
-public protocol LowercaseFirstAble{
-    func lowercaseFirst() -> String
+public protocol HumpAble{
+    func hump() -> String
 }
 
-extension String: LowercaseFirstAble{
+extension String: HumpAble{
     var first: String {
         return String(characters.prefix(1))
     }
     var last: String {
         return String(characters.suffix(1))
     }
-    public func lowercaseFirst()-> String {
+    public func hump()-> String {
         return first.lowercased() + String(characters.dropFirst())
     }
 }
-
-extension NSDictionary:LowercaseKeyAccessable{
-    public subscript(key: LowercaseFirstAble) -> Any? {
+fileprivate struct AssociateKes {
+    static var associateKeyHumpAccess = "NSDictionary.humpAccessAble"
+}
+extension NSDictionary{
+    var humpAccessAble: Bool{
+        get{
+            return (objc_getAssociatedObject(self, &AssociateKes.associateKeyHumpAccess) as? Bool) ?? false
+        }
+        set {
+            objc_setAssociatedObject(self,  &AssociateKes.associateKeyHumpAccess, newValue, .OBJC_ASSOCIATION_ASSIGN)
+        }
+    }
+}
+extension NSDictionary:HumpKeyAccessable{
+    public subscript(key: HumpAble) -> Any? {
         get {
-            return self.object(forKey:key.lowercaseFirst())
+            if self.humpAccessAble{
+                return self.object(forKey:key.hump())
+            }
+            return self.object(forKey:key)
         }
         set {
             if let key = key as? String{
                 self.setValue(newValue, forKey: key)
             }
-
+            
         }
     }
 }
